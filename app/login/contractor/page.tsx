@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Navbar from '../../components/Navbar'
-import RouteGuard from '../../components/RouteGuard'
-import { useAuth } from '../../components/AuthProvider'
+import Navbar from '@/components/Navbar'
+import RouteGuard from '@/components/RouteGuard'
+import { useAuth } from '@/components/AuthProvider'
 import { supabase } from '@/lib/supabase'
 
 type Project = {
