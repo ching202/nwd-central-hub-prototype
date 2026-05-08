@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import BackButton from '@/components/BackButton'
 
 export default function AdminPage() {
   const [proposals, setProposals] = useState<any[]>([])
@@ -39,6 +40,8 @@ export default function AdminPage() {
 
   return (
     <div>
+      <BackButton />
+
       <h1>Admin Dashboard</h1>
 
       {proposals.map((proposal) => (
@@ -47,6 +50,7 @@ export default function AdminPage() {
           style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}
         >
           <h3>{proposal.title}</h3>
+
           <p>{proposal.description}</p>
 
           <button onClick={() => approveProposal(proposal.id)}>

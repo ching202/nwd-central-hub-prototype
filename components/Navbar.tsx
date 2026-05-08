@@ -10,7 +10,9 @@ export default function Navbar() {
 
   useEffect(() => {
     const fetchRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
       if (!user) {
         router.push('/login')
@@ -27,7 +29,7 @@ export default function Navbar() {
     }
 
     fetchRole()
-  }, [])
+  }, [router])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -39,6 +41,7 @@ export default function Navbar() {
       {role === 'Admin' && (
         <>
           <span>Admin Panel | </span>
+
           <button onClick={() => router.push('/login/admin')}>
             Approve Projects
           </button>
@@ -48,6 +51,7 @@ export default function Navbar() {
       {role === 'Contractor' && (
         <>
           <span>Contractor Dashboard | </span>
+
           <button onClick={() => router.push('/login/contractor')}>
             My Projects
           </button>
@@ -57,7 +61,8 @@ export default function Navbar() {
       {role === 'Client' && (
         <>
           <span>Client Dashboard | </span>
-          <button onClick={() => router.push('/login/contractor')}>
+
+          <button onClick={() => router.push('/login/client')}>
             My Projects
           </button>
         </>
