@@ -17,6 +17,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const loadProfile = async () => {
+      setLoading(true)
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
