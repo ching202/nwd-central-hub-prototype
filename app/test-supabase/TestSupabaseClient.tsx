@@ -2,45 +2,35 @@
 
 import { supabase } from "@/lib/supabase";
 
-export default function TestPage() {
+export default function TestSupabaseClient() {
   async function testConnection() {
     const { data, error } = await supabase.auth.getSession();
 
     console.log(data, error);
 
     if (error) {
-      alert("Error connecting to Supabase: " + error.message);
+      alert("Error: " + error.message);
     } else {
       alert("Connected to Supabase ");
     }
   }
 
   async function signUp() {
-    const email = `test${Date.now()}@example.com`;
-    const password = "password123";
-
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: "test2@example.com",
+      password: "password123",
     });
 
     if (error) {
-      if (error.message.includes("already registered")) {
-        alert("User already exists (this is expected if reused)");
-      } else {
-        alert("Error creating user: " + error.message);
-      }
+      alert(error.message);
     } else {
-      alert(`User created successfully \nEmail: ${email}`);
+      alert("User created ");
     }
   }
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Supabase Test</h1>
-      <p style={{ marginTop: "10px", color: "#666" }}>
-        Use these buttons to verify connection and authentication.
-      </p>
 
       <button
         onClick={testConnection}
@@ -52,7 +42,7 @@ export default function TestPage() {
           borderRadius: "6px",
           cursor: "pointer",
           fontSize: "16px",
-          marginTop: "20px",
+          marginTop: "10px",
         }}
       >
         Test Connection
@@ -68,7 +58,7 @@ export default function TestPage() {
           borderRadius: "6px",
           cursor: "pointer",
           fontSize: "16px",
-          marginTop: "20px",
+          marginTop: "10px",
           marginLeft: "10px",
         }}
       >
