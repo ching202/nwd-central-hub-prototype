@@ -19,6 +19,7 @@ export default function TestPage() {
   // Create test user
   async function signUp() {
     const email = `test${Date.now()}@example.com`;
+    const email = `test${Date.now()}@example.com`; //  dynamic email
     const password = "password123";
 
     const { error } = await supabase.auth.signUp({

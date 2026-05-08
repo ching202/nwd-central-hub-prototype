@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import RouteGuard from '@/components/RouteGuard'
 import { useAuth } from '@/components/AuthProvider'
 import { supabase } from '@/lib/supabase'
+import Navbar from '@/components/Navbar'
 
 type Project = {
   id: string
