@@ -28,11 +28,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { data } = await supabase
         .from('profiles')
-        .select('id, email, role')
+        .select('id, role')
         .eq('id', user.id)
         .single()
 
-      setProfile(data ?? null)
+      setProfile(data ? { ...data, email: user.email ?? '' } : null)
       setLoading(false)
     }
 
