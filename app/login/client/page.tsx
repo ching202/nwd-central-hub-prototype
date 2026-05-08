@@ -5,7 +5,7 @@ import RouteGuard from '../../components/RouteGuard'
 
 export default function ClientDashboardPage() {
   return (
-    <RouteGuard allowedRoles={['Client']}>
+    <RouteGuard allowedRoles={['client']}>
       <Navbar />
     </RouteGuard>
   )

@@ -100,7 +100,7 @@ function ContractorContent() {
 
 export default function ContractorDashboardPage() {
   return (
-    <RouteGuard allowedRoles={['Contractor']}>
+    <RouteGuard allowedRoles={['contractor']}>
       <ContractorContent />
     </RouteGuard>
   )

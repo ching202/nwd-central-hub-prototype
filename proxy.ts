@@ -4,12 +4,12 @@ import type { UserRole } from '@/types/auth'
 
 // Routes that require a specific role — also covers all sub-paths
 const ROLE_ROUTES: { prefix: string; role: UserRole }[] = [
-  { prefix: '/admin', role: 'Admin' },
-  { prefix: '/client', role: 'Client' },
-  { prefix: '/contractor', role: 'Contractor' },
-  { prefix: '/login/admin', role: 'Admin' },
-  { prefix: '/login/client', role: 'Client' },
-  { prefix: '/login/contractor', role: 'Contractor' },
+  { prefix: '/admin', role: 'admin' },
+  { prefix: '/client', role: 'client' },
+  { prefix: '/contractor', role: 'contractor' },
+  { prefix: '/login/admin', role: 'admin' },
+  { prefix: '/login/client', role: 'client' },
+  { prefix: '/login/contractor', role: 'contractor' },
 ]
 
 // Routes that require authentication but no specific role
@@ -68,9 +68,9 @@ export async function proxy(request: NextRequest) {
       .single()
 
     const dashboardMap: Record<string, string> = {
-      Admin: '/login/admin',
-      Client: '/login/client',
-      Contractor: '/login/contractor',
+      admin: '/login/admin',
+      client: '/login/client',
+      contractor: '/login/contractor',
     }
     const destination = dashboardMap[profile?.role ?? ''] ?? '/'
     return NextResponse.redirect(new URL(destination, request.url))

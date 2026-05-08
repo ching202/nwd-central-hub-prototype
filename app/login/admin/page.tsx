@@ -5,7 +5,7 @@ import RouteGuard from '../../components/RouteGuard'
 
 export default function AdminDashboardPage() {
   return (
-    <RouteGuard allowedRoles={['Admin']}>
+    <RouteGuard allowedRoles={['admin']}>
       <Navbar />
     </RouteGuard>
   )
