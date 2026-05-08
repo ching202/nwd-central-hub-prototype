@@ -2,36 +2,6 @@
 
 import Navbar from '@/components/Navbar'
 import RouteGuard from '@/components/RouteGuard'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
-
-export default function AdminPage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.role !== 'Admin') {
-        router.push('/login')
-      }
-    }
-
-    checkUser()
-  }, [])
 
 export default function AdminDashboardPage() {
   return (

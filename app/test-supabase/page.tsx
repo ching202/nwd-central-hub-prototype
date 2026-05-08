@@ -3,7 +3,6 @@
 import { supabase } from "@/lib/supabase";
 
 export default function TestPage() {
-  // Test connection
   async function testConnection() {
     const { data, error } = await supabase.auth.getSession();
 
@@ -16,10 +15,8 @@ export default function TestPage() {
     }
   }
 
-  // Create test user
   async function signUp() {
     const email = `test${Date.now()}@example.com`;
-    const email = `test${Date.now()}@example.com`; //  dynamic email
     const password = "password123";
 
     const { error } = await supabase.auth.signUp({
@@ -45,7 +42,6 @@ export default function TestPage() {
         Use these buttons to verify connection and authentication.
       </p>
 
-      {/* Connection button */}
       <button
         onClick={testConnection}
         style={{
@@ -62,7 +58,6 @@ export default function TestPage() {
         Test Connection
       </button>
 
-      {/* Signup button */}
       <button
         onClick={signUp}
         style={{
