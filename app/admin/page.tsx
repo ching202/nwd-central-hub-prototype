@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import RouteGuard from '../components/RouteGuard'
+import RouteGuard from '@/components/RouteGuard'
 
 function AdminContent() {
   const [proposals, setProposals] = useState<any[]>([])
@@ -56,7 +56,7 @@ function AdminContent() {
 
 export default function AdminPage() {
   return (
-    <RouteGuard allowedRoles={['Admin']}>
+    <RouteGuard allowedRoles={['admin']}>
       <AdminContent />
     </RouteGuard>
   )
