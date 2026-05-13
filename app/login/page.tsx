@@ -49,9 +49,9 @@ export default function LoginPage() {
     }
 
     // 3️⃣ Success
-    if (profile.role === 'Admin') {
+    if (profile.role === 'admin') {
       router.push('/login/admin')
-    } else if (profile.role === 'Contractor') {
+    } else if (profile.role === 'contractor') {
       router.push('/login/contractor')
     } else {
       router.push('/login/client')

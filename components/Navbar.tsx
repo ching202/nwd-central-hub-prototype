@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from './AuthProvider'
 
 export default function Navbar() {
-  const [role, setRole] = useState<string | null>(null)
+  const { profile } = useAuth()
   const router = useRouter()
 
+<<<<<<< 37-navbar-back-navigation
   useEffect(() => {
     const fetchRole = async () => {
       const {
@@ -31,6 +32,8 @@ export default function Navbar() {
     fetchRole()
   }, [router])
 
+=======
+>>>>>>> main
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
@@ -38,7 +41,7 @@ export default function Navbar() {
 
   return (
     <div style={{ padding: 20, borderBottom: '1px solid gray' }}>
-      {role === 'Admin' && (
+      {profile?.role === 'admin' && (
         <>
           <span>Admin Panel | </span>
 
@@ -48,7 +51,7 @@ export default function Navbar() {
         </>
       )}
 
-      {role === 'Contractor' && (
+      {profile?.role === 'contractor' && (
         <>
           <span>Contractor Dashboard | </span>
 
@@ -58,10 +61,13 @@ export default function Navbar() {
         </>
       )}
 
-      {role === 'Client' && (
+      {profile?.role === 'client' && (
         <>
           <span>Client Dashboard | </span>
+<<<<<<< 37-navbar-back-navigation
 
+=======
+>>>>>>> main
           <button onClick={() => router.push('/login/client')}>
             My Projects
           </button>
