@@ -61,10 +61,7 @@ export default function Navbar() {
       {profile?.role === 'client' && (
         <>
           <span>Client Dashboard | </span>
-<<<<<<< 37-navbar-back-navigation
-
-=======
->>>>>>> main
+          
           <button onClick={() => router.push('/login/client')}>
             My Projects
           </button>
