@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import BackButton from '@/components/BackButton'
 import RouteGuard from '@/components/RouteGuard'
-
+  
 function AdminContent() {
   const [proposals, setProposals] = useState<any[]>([])
 
@@ -35,6 +36,8 @@ function AdminContent() {
 
   return (
     <div>
+      <BackButton />
+
       <h1>Admin Dashboard</h1>
 
       {proposals.map((proposal) => (
@@ -43,6 +46,7 @@ function AdminContent() {
           style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}
         >
           <h3>{proposal.title}</h3>
+
           <p>{proposal.description}</p>
 
           <button onClick={() => approveProposal(proposal.id)}>
