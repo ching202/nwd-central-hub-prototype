@@ -8,7 +8,6 @@ export default function Navbar() {
   const { profile } = useAuth()
   const router = useRouter()
 
-<<<<<<< 37-navbar-back-navigation
   useEffect(() => {
     const fetchRole = async () => {
       const {
@@ -32,8 +31,6 @@ export default function Navbar() {
     fetchRole()
   }, [router])
 
-=======
->>>>>>> main
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/login')
