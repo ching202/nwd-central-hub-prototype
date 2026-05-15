@@ -4,4 +4,5 @@ export type UserProfile = {
   id: string
   email: string
   role: UserRole
+  is_temporary_password?: boolean
 }
