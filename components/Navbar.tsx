@@ -3,10 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthProvider'
+import { useEffect, useState } from "react"
 
 export default function Navbar() {
   const { profile } = useAuth()
   const router = useRouter()
+
+  const [role, setRole] = useState(null)
 
   useEffect(() => {
     const fetchRole = async () => {
