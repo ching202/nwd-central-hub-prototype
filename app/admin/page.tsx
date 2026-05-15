@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-<<<<<<< 37-navbar-back-navigation
 import BackButton from '@/components/BackButton'
-=======
 import RouteGuard from '@/components/RouteGuard'
->>>>>>> main
-
+  
 function AdminContent() {
   const [proposals, setProposals] = useState<any[]>([])
 
