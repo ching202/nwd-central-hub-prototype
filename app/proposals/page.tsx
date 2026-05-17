@@ -3,9 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  PROPOSAL_STATUSES,
   type Proposal,
-  type ProposalStatus,
   getProposalStatusClass,
   getProposalStatusLabel,
 } from "@/lib/proposals";
@@ -14,8 +12,12 @@ export default function SubmissionsList() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
 
   useEffect(() => {
-    const data = localStorage.getItem('proposals');
-    if (data) setProposals(JSON.parse(data));
+    const timeoutId = window.setTimeout(() => {
+      const data = localStorage.getItem('proposals');
+      setProposals(data ? JSON.parse(data) : []);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   return (
