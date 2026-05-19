@@ -21,6 +21,11 @@ export default function RouteGuard({ allowedRoles, children }: Props) {
       router.replace('/login')
       return
     }
+    
+    if (profile.is_temporary_password) {
+      router.replace('/change-password')
+      return
+    }
 
     if (!allowedRoles.includes(profile.role)) {
       router.replace('/unauthorized')
