@@ -1,0 +1,44 @@
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+type SendWelcomeEmailParams = {
+  email: string;
+  temporaryPassword: string;
+  loginUrl: string;
+};
+
+export async function sendWelcomeEmail({
+  email,
+  temporaryPassword,
+  loginUrl,
+}: SendWelcomeEmailParams) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("Missing RESEND_API_KEY");
+  }
+
+  await resend.emails.send({
+    from: "Next Wave Dev Central Hub <onboarding@resend.dev>",
+    to: email,
+    subject: "Welcome to Next Wave Dev Central Hub",
+    html: `
+      <h1>Welcome to Next Wave Dev Central Hub</h1>
+
+      <p>Your account has been created successfully.</p>
+
+      <p>
+        <strong>Login Link:</strong>
+        <a href="${loginUrl}">${loginUrl}</a>
+      </p>
+
+      <p>
+        <strong>Temporary Password:</strong>
+        ${temporaryPassword}
+      </p>
+
+      <p>
+        Please log in and update your password immediately.
+      </p>
+    `,
+  });
+}
