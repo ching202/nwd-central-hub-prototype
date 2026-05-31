@@ -17,28 +17,45 @@ export async function sendWelcomeEmail({
     throw new Error("Missing RESEND_API_KEY");
   }
 
-  await resend.emails.send({
-    from: "Next Wave Dev Central Hub <onboarding@resend.dev>",
-    to: email,
-    subject: "Welcome to Next Wave Dev Central Hub",
-    html: `
-      <h1>Welcome to Next Wave Dev Central Hub</h1>
+  try {
+    console.log("=================================");
+    console.log("Attempting to send welcome email");
+    console.log("Recipient:", email);
+    console.log("Login URL:", loginUrl);
+    console.log("=================================");
 
-      <p>Your account has been created successfully.</p>
+    const response = await resend.emails.send({
+      from: "Next Wave Dev Central Hub <onboarding@resend.dev>",
+      to: email,
+      subject: "Welcome to Next Wave Dev Central Hub",
+      html: `
+        <h1>Welcome to Next Wave Dev Central Hub</h1>
 
-      <p>
-        <strong>Login Link:</strong>
-        <a href="${loginUrl}">${loginUrl}</a>
-      </p>
+        <p>Your account has been created successfully.</p>
 
-      <p>
-        <strong>Temporary Password:</strong>
-        ${temporaryPassword}
-      </p>
+        <p>
+          <strong>Login Link:</strong>
+          <a href="${loginUrl}">${loginUrl}</a>
+        </p>
 
-      <p>
-        Please log in and update your password immediately.
-      </p>
-    `,
-  });
+        <p>
+          <strong>Temporary Password:</strong>
+          ${temporaryPassword}
+        </p>
+
+        <p>
+          Please log in and update your password immediately.
+        </p>
+      `,
+    });
+
+    console.log("RESEND RESPONSE:");
+    console.log(response);
+
+    return response;
+  } catch (error) {
+    console.error("RESEND ERROR:");
+    console.error(error);
+    throw error;
+  }
 }
