@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 import {
   type Proposal,
   getProposalStatusClass,
   getProposalStatusLabel,
-} from "@/lib/proposals";
+} from '@/lib/proposals';
 
 export default function SubmissionsList() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -23,8 +24,13 @@ export default function SubmissionsList() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-6">
+
+        <BackButton />
+
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">My Submissions</h1>
+          <h1 className="text-2xl font-bold text-gray-800">
+            My Submissions
+          </h1>
           <Link
             href="/proposals/new"
             className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
@@ -48,6 +54,7 @@ export default function SubmissionsList() {
                 </th>
               </tr>
             </thead>
+
             <tbody className="bg-white divide-y divide-gray-200">
               {proposals.length === 0 ? (
                 <tr>

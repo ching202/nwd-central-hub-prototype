@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import BackButton from '@/components/BackButton'
 import RouteGuard from '@/components/RouteGuard'
 import {
   PROPOSAL_STATUSES,
@@ -37,6 +38,8 @@ function AdminContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto p-6">
+        <BackButton />
+
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">

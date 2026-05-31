@@ -3,15 +3,17 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import BackButton from '@/components/BackButton'
 
 export default function LoginPage() {
   const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
 
   const handleLogin = async () => {
-    setMessage('') // clear old message
+    setMessage('')
 
     // 1️⃣ Login
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -58,14 +60,20 @@ export default function LoginPage() {
 
   return (
     <div style={{ padding: 40 }}>
-      
+
+      <div style={{ marginBottom: 20 }}>
+        <BackButton />
+      </div>
+
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <br /><br />
+
+      <br />
+      <br />
 
       <input
         type="password"
@@ -73,7 +81,9 @@ export default function LoginPage() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <br /><br />
+
+      <br />
+      <br />
 
       <button onClick={handleLogin}>Login</button>
 
