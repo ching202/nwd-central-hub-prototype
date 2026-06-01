@@ -42,7 +42,7 @@ function ContractorContent() {
         localStorage.getItem('activeProjects') || '[]'
       )
 
-      if (!error) setProjects([...(data || []), ...storedProjects])
+      setProjects([...(data || []), ...storedProjects])
       setLoading(false)
     }
 
