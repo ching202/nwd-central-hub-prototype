@@ -1,6 +1,6 @@
 export const PROPOSAL_STATUSES = {
   Draft: "draft",
-  Submitted: "awaiting approval",
+  Submitted: "submitted",
   Approved: "approved",
   Rejected: "rejected",
 } as const;
