@@ -36,8 +36,8 @@ export default function SubmissionsList() {
       setLoading(false)
     }
 
-    fetchProposals()
-  }, [profile?.id])
+    void fetchProposals()
+  }, [profile])
 
   return (
       <div className="min-h-screen bg-gray-50">
