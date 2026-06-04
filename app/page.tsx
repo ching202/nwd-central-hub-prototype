@@ -69,7 +69,7 @@ export default function Home() {
               PORTAL
             </p>
             <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-              Let's build something great
+              Let&apos;s build something great
             </h1>
           </div>
 
