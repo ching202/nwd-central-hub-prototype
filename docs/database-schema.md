@@ -4,7 +4,7 @@ This document describes the deployed database schema for the NWD Central Hub: ta
 
 Read this alongside `docs/architecture.md`, which covers how these tables are queried and how RLS interacts with the two Supabase clients.
 
-> **This document reflects the schema as of the merge of PR #50 ([#21] Improve Proposal Lifecycle & Status Handling).** Tables not yet fully built are marked with their blocking issue. `docs/database-setup.md` is superseded by this document and should be deleted.
+> **This document reflects the schema as of the merge of PR #54 ([#54] Admin Proposal Review Page & Lifecycle Automation).** Tables not yet built are marked with their blocking issue. `docs/database-setup.md` is superseded by this document and should be deleted.
 
 ---
 
@@ -13,8 +13,9 @@ Read this alongside `docs/architecture.md`, which covers how these tables are qu
 | Table | Status | Description |
 |---|---|---|
 | `profiles` | ✅ Complete | Application users — extends `auth.users` |
-| `proposals` | ✅ Complete (as of PR #50) | Project proposals submitted by clients |
-| `projects` | ⚠️ Stub | Approved proposals promoted to projects — full schema pending #54 |
+| `proposals` | ✅ Complete | Project proposals submitted by clients |
+| `projects` | ✅ Complete (as of PR #54) | Approved proposals promoted to projects |
+| `contractor_projects` | ✅ Complete | Join table linking contractors to projects |
 | `proposal_requests` | ❌ Not built | Contractor request-to-join flow — pending #40 |
 | `project_messages` | ❌ Not built | In-project messaging — pending #56 |
 
@@ -80,33 +81,45 @@ draft → submitted → approved
 - New proposals are created with `status: 'submitted'` by the client form (`proposals/new/page.tsx`). The `draft` status exists in the type system for future use (e.g., save-for-later before submission) but is not currently written by any UI flow.
 - Status transition logic, display helpers, and badge CSS classes live in `lib/proposals.ts`.
 
-> **Persistence note:** As of PR #50, the proposal submission form and admin review page still read and write from `localStorage`, not Supabase. The status values and type definitions are correct; the persistence layer migration to Supabase is the scope of issue #51. Do not assume proposals are in the database until #51 is merged.
-
-**Source of truth:** `lib/proposals.ts`, `app/proposals/new/page.tsx`
+**Source of truth:** `lib/proposals.ts`, `app/login/proposals/new/page.tsx`
 
 ---
 
-## Table: `projects` ⚠️ Stub
+## Table: `projects`
 
-Created when an admin approves a proposal. Currently a stub pending the full schema design in issue #54.
-
-```sql
-proposal_id   uuid    -- only confirmed column as of this writing
-```
-
-**Planned schema (target state after #54):**
+Created automatically when an admin approves a proposal. The `approveProposal` server action in `app/login/admin/proposals/actions.ts` updates the proposal status to `approved` and inserts the projects row atomically.
 
 ```sql
 id            uuid       PRIMARY KEY DEFAULT gen_random_uuid()
 proposal_id   uuid       NOT NULL REFERENCES proposals(id)
+client_id     uuid       NOT NULL REFERENCES profiles(id)
 title         text
 description   text
-client_id     uuid       REFERENCES profiles(id)
-status        text
-created_at    timestamp  DEFAULT now()
+budget        text
+status        text       DEFAULT 'active'
+created_at    timestamptz DEFAULT now()
 ```
 
-Contractor linkage will be handled via a join table (`contractor_projects` or equivalent) added as part of #54 or #40. Do not build features that depend on the current stub schema — coordinate with the team before writing any migrations against this table.
+**Notes:**
+- `proposal_id` and `client_id` are copied from the source proposal at approval time.
+- `title`, `description`, and `budget` are copied from the source proposal at approval time.
+- Contractor linkage is handled via `contractor_projects` (see below), not a column on this table.
+- The workspace page (`/projects/[id]`) is pending #55.
+
+**Source of truth:** `app/login/admin/proposals/actions.ts`
+
+---
+
+## Table: `contractor_projects`
+
+Join table linking approved contractors to projects. Populated when an admin approves a contractor's request in the #40 flow.
+
+```sql
+id              uuid       PRIMARY KEY DEFAULT gen_random_uuid()
+contractor_id   uuid       NOT NULL REFERENCES profiles(id)
+project_id      uuid       NOT NULL REFERENCES projects(id)
+assigned_at     timestamptz
+```
 
 ---
 
@@ -118,11 +131,13 @@ Required for the contractor request-to-join flow (#40). Does not exist yet.
 
 ```sql
 id              uuid       PRIMARY KEY DEFAULT gen_random_uuid()
-proposal_id     uuid       NOT NULL REFERENCES proposals(id)
 contractor_id   uuid       NOT NULL REFERENCES profiles(id)
+project_id      uuid       NOT NULL REFERENCES projects(id)
 status          text       CHECK (status IN ('pending', 'approved', 'rejected'))
-created_at      timestamp  DEFAULT now()
+created_at      timestamptz DEFAULT now()
 ```
+
+**Note:** References `project_id`, not `proposal_id`. A project row exists by the time a contractor makes a request (project is created at proposal approval), so `project_id` is always available. The contractor dashboard (#40) must join through `projects` to get proposal details for display.
 
 ---
 
@@ -151,11 +166,13 @@ auth.users
             │
             ├── proposals (client_id → profiles.id)
             │       │
-            │       ├── projects (proposal_id → proposals.id)  [stub]
-            │       │       │
-            │       │       └── project_messages (project_id → projects.id)  [not built]
-            │       │
-            │       └── proposal_requests (proposal_id → proposals.id)  [not built]
+            │       └── projects (proposal_id → proposals.id)
+            │               │
+            │               ├── project_messages (project_id → projects.id)  [not built]
+            │               ├── proposal_requests (project_id → projects.id)  [not built]
+            │               └── contractor_projects (project_id → projects.id)
+            │
+            ├── contractor_projects (contractor_id → profiles.id)
             │
             ├── proposal_requests (contractor_id → profiles.id)  [not built]
             │
@@ -191,9 +208,28 @@ RLS is enabled on all tables. The browser Supabase client (`lib/supabase.ts`, an
 | UPDATE | Admin | Status on any proposal |
 | UPDATE | Client | Not permitted — status changes are admin-only |
 
-### `projects` (policies pending #54)
+### `projects`
 
-RLS policies for `projects` will be defined when the full schema lands in #54. Until then, treat this table as admin-write only via `supabaseAdmin`.
+| Operation | Who | Policy |
+|---|---|---|
+| SELECT | Client | Own projects only (`client_id = auth.uid()`) |
+| SELECT | Admin | All projects |
+| SELECT | Contractor | Projects where assigned (via `contractor_projects`) |
+| INSERT | Admin | Via `supabaseAdmin` in `approveProposal` server action only |
+| UPDATE | Admin | Any project |
+
+### `proposal_requests` (not yet built)
+
+Policies will be defined when the table is created in #40. Planned: admin full access, contractor insert own, contractor view own.
+
+### `contractor_projects`
+
+| Operation | Who | Policy |
+|---|---|---|
+| SELECT | Admin | All rows |
+| SELECT | Contractor | Own rows only |
+| SELECT | Client | Contractors assigned to their projects |
+| INSERT | Admin | Via server action only |
 
 ---
 
@@ -201,13 +237,12 @@ RLS policies for `projects` will be defined when the full schema lands in #54. U
 
 | Gap | Impact | Resolved by |
 |---|---|---|
-| `projects` table is a stub | Blocks workspace, messaging, and contractor assignment | #54 |
 | `UserProfile` type missing `name` | TypeScript friction when workspace/messaging display user names | Add `name?: string` to `types/auth.ts` before #55/#56 |
-| Proposals persist to `localStorage`, not Supabase | Admin and client proposal surfaces are disconnected | #51 |
 | `proposal_requests` table not built | Contractor self-service join flow blocked | #40 |
 | `project_messages` table not built | In-project messaging blocked | #56 |
 | NULL rows in `profiles` | Orphaned auth records from out-of-flow user creation | Future cleanup migration (non-blocking) |
 | `budget` has no numeric constraint | Freeform text — no validation beyond form `type="number"` | Post-MVP hardening |
+| Terminal status not enforced at DB level | `approved`/`rejected` proposals can be updated via direct SQL | Post-MVP hardening (CHECK constraint or trigger) |
 
 ---
 
