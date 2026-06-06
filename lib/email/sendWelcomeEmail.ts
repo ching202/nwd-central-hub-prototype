@@ -25,7 +25,7 @@ export async function sendWelcomeEmail({
     console.log("=================================");
 
     const response = await resend.emails.send({
-      from: "Next Wave Dev Central Hub <onboarding@resend.dev>",
+      from: "Next Wave Dev Central Hub <onboarding@nextwavedev.org>",
       to: email,
       subject: "Welcome to Next Wave Dev Central Hub",
       html: `
