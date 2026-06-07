@@ -72,7 +72,7 @@ export default function SubmissionsList() {
                       {item.title}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ${item.budget}
+                      {item.budget ? `$${item.budget}` : 'Not set'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
