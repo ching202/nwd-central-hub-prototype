@@ -38,13 +38,13 @@ export function getProposalStatusLabel(status: ProposalStatus) {
 
 export function getProposalStatusClass(status: ProposalStatus) {
   switch (status) {
-    case "draft":
+    case PROPOSAL_STATUSES.Draft:
       return "bg-gray-100 text-gray-800";
-    case "submitted":
+    case PROPOSAL_STATUSES.Submitted:
       return "bg-yellow-100 text-yellow-800";
-    case "approved":
+    case PROPOSAL_STATUSES.Approved:
       return "bg-green-100 text-green-800";
-    case "rejected":
+    case PROPOSAL_STATUSES.Rejected:
       return "bg-red-100 text-red-800";
   }
 }

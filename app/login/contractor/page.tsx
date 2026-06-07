@@ -32,7 +32,7 @@ function ContractorContent() {
     if (!profile) return
 
     const fetchProjects = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('projects_table')
         .select('id, title, description')
         .eq('status', 'Active')

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from '@/components/Navbar'
 import RouteGuard from '@/components/RouteGuard'
 import {
+  PROPOSAL_STATUSES,
   type Proposal,
   getProposalStatusClass,
   getProposalStatusLabel,
@@ -23,7 +24,9 @@ function ClientContent() {
 
       setFullProposals(proposals);
       setSubmittedProposals(
-        proposals.filter((proposal) => proposal.status == "awaiting approval"),
+        proposals.filter(
+          (proposal) => proposal.status === PROPOSAL_STATUSES.Submitted,
+        ),
       );
       setReviewedProposals(
         proposals.filter((proposal) => isFinalProposalStatus(proposal.status)),
