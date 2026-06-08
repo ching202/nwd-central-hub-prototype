@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import RouteGuard from '@/components/RouteGuard'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/components/AuthProvider'
-
+import BackButton from '@/components/BackButton';
 const WORD_LIMIT = 2000
 
 function wordCount(text: string): number {
@@ -97,6 +97,7 @@ function NewProposalContent() {
           </div>
         </header>
 
+      <BackButton />
         <main className="flex-1 px-6 py-10">
           <div className="max-w-2xl mx-auto">
             <section>
