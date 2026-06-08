@@ -3,20 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import BackButton from '@/components/BackButton';
-
-interface Proposal {
-  id: string;
-  title: string;
-  budget: string;
-  status: string;
-}
+import {
+  type Proposal,
+  getProposalStatusClass,
+  getProposalStatusLabel,
+} from '@/lib/proposals';
 
 export default function SubmissionsList() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
 
   useEffect(() => {
-    const data = localStorage.getItem('proposals');
-    if (data) setProposals(JSON.parse(data));
+    const timeoutId = window.setTimeout(() => {
+      const data = localStorage.getItem('proposals');
+      setProposals(data ? JSON.parse(data) : []);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   return (
@@ -29,7 +31,6 @@ export default function SubmissionsList() {
           <h1 className="text-2xl font-bold text-gray-800">
             My Submissions
           </h1>
-
           <Link
             href="/proposals/new"
             className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
@@ -45,11 +46,9 @@ export default function SubmissionsList() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Title
                 </th>
-
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Budget
                 </th>
-
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -72,14 +71,14 @@ export default function SubmissionsList() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {item.title}
                     </td>
-
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ${item.budget}
+                      {item.budget ? `$${item.budget}` : 'Not set'}
                     </td>
-
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        {item.status.toUpperCase()}
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getProposalStatusClass(item.status)}`}
+                      >
+                        {getProposalStatusLabel(item.status)}
                       </span>
                     </td>
                   </tr>
