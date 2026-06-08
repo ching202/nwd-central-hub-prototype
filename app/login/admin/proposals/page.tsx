@@ -1,13 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import BackButton from '@/components/BackButton'
+import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import RouteGuard from '@/components/RouteGuard'
+import { supabase } from '@/lib/supabase'
 import {
     type Proposal,
-    getProposalStatusClass,
-    getProposalStatusLabel,
     canAdminReviewProposal,
 } from '@/lib/proposals'
 import { approveProposal, rejectProposal } from './actions'
@@ -17,10 +16,6 @@ type ProposalWithClient = Proposal & {
     client_email: string | null
 }
 
-// Supabase types a foreign-table join as an array even on a many-to-one
-// relationship, so `profiles` may come back as an array or a single object.
-// shapeProposals normalizes that and is shared by the initial effect loader
-// and the post-action refetch so the mapping logic lives in one place.
 type ProposalJoinRow = {
     id: string
     title: string
@@ -63,14 +58,39 @@ function shapeProposals(rows: ProposalJoinRow[]): ProposalWithClient[] {
     })
 }
 
+type ProposalStatus = 'draft' | 'submitted' | 'approved' | 'rejected'
+
+const STATUS_STYLES: Record<ProposalStatus, { color: string; label: string }> = {
+    draft:     { color: '#6b7280', label: 'Draft' },
+    submitted: { color: '#d97706', label: 'Submitted' },
+    approved:  { color: 'var(--nwd-teal)', label: 'Approved' },
+    rejected:  { color: '#f43f5e', label: 'Rejected' },
+}
+
+function ProposalStatusBadge({ status }: { status: string }) {
+    const style = STATUS_STYLES[status as ProposalStatus] ?? STATUS_STYLES.draft
+    return (
+        <span
+            className="text-xs font-semibold tracking-wider px-2 py-0.5 rounded"
+            style={{
+                color: style.color,
+                background: `color-mix(in srgb, ${style.color} 12%, transparent)`,
+                fontFamily: 'var(--font-geist-mono)',
+            }}
+        >
+            {style.label}
+        </span>
+    )
+}
+
 function ProposalReviewContent() {
     const [proposals, setProposals] = useState<ProposalWithClient[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [processing, setProcessing] = useState<string | null>(null)
     const [toast, setToast] = useState<string | null>(null)
+    const [expandedId, setExpandedId] = useState<string | null>(null)
 
-    // Shared refetch used by the approve/reject handlers after a mutation.
     async function fetchProposals() {
         const { data, error } = await supabase
             .from('proposals')
@@ -88,9 +108,6 @@ function ProposalReviewContent() {
         setLoading(false)
     }
 
-    // Initial load owns its own lifecycle. The `active` flag prevents a state
-    // update if the component unmounts before the fetch resolves, which is what
-    // keeps the react-hooks/set-state-in-effect rule satisfied without a disable.
     useEffect(() => {
         let active = true
 
@@ -114,166 +131,244 @@ function ProposalReviewContent() {
         }
 
         void load()
-
-        return () => {
-            active = false
-        }
+        return () => { active = false }
     }, [])
 
     async function handleApprove(proposalId: string) {
         setProcessing(proposalId)
         const result = await approveProposal(proposalId)
-
         if (result.error) {
             setError(result.error)
         } else {
             setToast('Project created successfully.')
+            setExpandedId(null)
             await fetchProposals()
         }
-
         setProcessing(null)
     }
 
     async function handleReject(proposalId: string) {
         setProcessing(proposalId)
         const result = await rejectProposal(proposalId)
-
         if (result.error) {
             setError(result.error)
         } else {
+            setExpandedId(null)
             await fetchProposals()
         }
-
         setProcessing(null)
     }
 
+    function toggleExpand(id: string) {
+        setExpandedId((prev) => (prev === id ? null : id))
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-5xl mx-auto p-6">
-                <BackButton />
+        <div className="min-h-screen flex flex-col" style={{ background: 'white' }}>
 
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800">
-                            Proposal Review
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Review submitted proposals and approve or reject them.
-                        </p>
+            <header className="bg-white border-b" style={{ borderColor: 'var(--nwd-border)' }}>
+                <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+                    <Image src="/NextWaveDev_FINAL_small.png" alt="NextWaveDev logo" width={36} height={36} className="object-contain" />
+                    <div className="flex items-center flex-1 min-w-0">
+                        <span className="font-semibold text-base tracking-tight" style={{ color: 'var(--nwd-purple)' }}>NextWaveDev</span>
+                        <span className="text-gray-400 mx-2 select-none">/</span>
+                        <Link href="/login/admin" className="text-sm text-gray-500 font-medium hover:text-gray-700 transition-colors">
+                            Admin Dashboard
+                        </Link>
+                        <span className="text-gray-400 mx-2 select-none">/</span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--nwd-teal)' }}>Proposal Review</span>
                     </div>
-
-                    <span className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium shadow-sm">
-            {proposals.length} pending
-          </span>
+                    <Link href="/login/admin" className="text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 3L5 8l5 5" />
+                        </svg>
+                        Back
+                    </Link>
                 </div>
+            </header>
 
-                {toast && (
-                    <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-md text-sm flex justify-between items-center">
-                        {toast}
-                        <button
-                            onClick={() => setToast(null)}
-                            className="ml-4 text-green-600 hover:text-green-800 font-medium"
-                        >
-                            Dismiss
-                        </button>
-                    </div>
-                )}
+            <main className="flex-1 px-6 py-10">
+                <div className="max-w-5xl mx-auto flex flex-col gap-10">
 
-                {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+                    <section>
+                        <div className="flex items-end justify-between mb-6">
+                            <div>
+                                <p className="text-xs font-semibold tracking-widest mb-1" style={{ color: 'var(--nwd-teal)', fontFamily: 'var(--font-geist-mono)' }}>REVIEW</p>
+                                <h2 className="text-2xl font-bold text-gray-900">Proposal Review</h2>
+                            </div>
+                            {!loading && (
+                                <span
+                                    className="text-xs font-semibold tracking-wider px-3 py-1.5 rounded-lg"
+                                    style={{
+                                        color: proposals.length > 0 ? '#d97706' : '#6b7280',
+                                        background: proposals.length > 0
+                                            ? 'color-mix(in srgb, #d97706 12%, transparent)'
+                                            : 'color-mix(in srgb, #6b7280 10%, transparent)',
+                                        fontFamily: 'var(--font-geist-mono)',
+                                    }}
+                                >
+                                    {proposals.length} pending
+                                </span>
+                            )}
+                        </div>
 
-                <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Title
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Client
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Budget
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                        {loading ? (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
-                                    Loading...
-                                </td>
-                            </tr>
-                        ) : proposals.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
-                                    No proposals awaiting review.
-                                </td>
-                            </tr>
-                        ) : (
-                            proposals.map((proposal) => {
-                                const isReviewable = canAdminReviewProposal(proposal)
-                                const isProcessing = processing === proposal.id
-
-                                return (
-                                    <tr key={proposal.id}>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                                            <div>{proposal.title}</div>
-                                            {proposal.description && (
-                                                <div className="text-gray-500 font-normal mt-1 max-w-xs truncate">
-                                                    {proposal.description}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
-                                            <div>{proposal.client_name ?? 'Unknown'}</div>
-                                            <div className="text-xs text-gray-400">
-                                                {proposal.client_email}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {proposal.budget ? `$${proposal.budget}` : 'Not set'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getProposalStatusClass(proposal.status)}`}
-                        >
-                          {getProposalStatusLabel(proposal.status)}
-                        </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    type="button"
-                                                    disabled={!isReviewable || isProcessing}
-                                                    onClick={() => handleApprove(proposal.id)}
-                                                    className="px-3 py-1.5 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
-                                                >
-                                                    {isProcessing ? 'Processing...' : 'Approve'}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={!isReviewable || isProcessing}
-                                                    onClick={() => handleReject(proposal.id)}
-                                                    className="px-3 py-1.5 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
-                                                >
-                                                    {isProcessing ? 'Processing...' : 'Reject'}
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })
+                        {toast && (
+                            <div className="mb-6 rounded-lg p-4 border" style={{ background: 'color-mix(in srgb, #10b981 8%, white)', borderColor: '#6ee7b7' }}>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-sm font-semibold text-emerald-800">{toast}</p>
+                                    <button onClick={() => setToast(null)} className="text-emerald-600 hover:text-emerald-800 text-lg leading-none flex-shrink-0" aria-label="Dismiss">×</button>
+                                </div>
+                            </div>
                         )}
-                        </tbody>
-                    </table>
+
+                        {error && (
+                            <div className="mb-6 rounded-lg p-4 border text-sm flex items-start justify-between gap-2" style={{ background: 'color-mix(in srgb, #f43f5e 8%, white)', borderColor: '#fda4af', color: '#9f1239' }}>
+                                <span>{error}</span>
+                                <button onClick={() => setError(null)} className="text-rose-400 hover:text-rose-600 text-lg leading-none flex-shrink-0" aria-label="Dismiss">×</button>
+                            </div>
+                        )}
+
+                        {loading ? (
+                            <div className="flex items-center justify-center py-16 text-gray-400 text-sm">Loading proposals…</div>
+                        ) : proposals.length === 0 ? (
+                            <div className="text-center py-16 text-gray-400 text-sm">No proposals awaiting review.</div>
+                        ) : (
+                            <div className="border rounded-lg overflow-x-auto" style={{ borderColor: 'var(--nwd-border)' }}>
+                                <table className="min-w-full divide-y" style={{ borderColor: 'var(--nwd-border)' }}>
+                                    <thead>
+                                    <tr style={{ background: 'var(--nwd-surface)' }}>
+                                        {['Title', 'Client', 'Budget', 'Status', 'Actions'].map((label) => (
+                                            <th
+                                                key={label}
+                                                className={`px-4 py-3 text-xs font-semibold tracking-wider text-gray-500 whitespace-nowrap ${label === 'Actions' ? 'text-right' : 'text-left'}`}
+                                                style={{ fontFamily: 'var(--font-geist-mono)' }}
+                                            >
+                                                {label}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y" style={{ borderColor: 'var(--nwd-border)' }}>
+                                    {proposals.map((proposal) => {
+                                        const isReviewable = canAdminReviewProposal(proposal)
+                                        const isProcessing = processing === proposal.id
+                                        const anyProcessing = processing !== null
+                                        const isExpanded = expandedId === proposal.id
+
+                                        return (
+                                            <React.Fragment key={proposal.id}>
+                                                <tr
+                                                    onClick={() => toggleExpand(proposal.id)}
+                                                    className="cursor-pointer transition-colors"
+                                                    style={{ background: isExpanded ? 'color-mix(in srgb, var(--nwd-teal) 5%, white)' : undefined }}
+                                                    onMouseEnter={(e) => {
+                                                        if (!isExpanded) (e.currentTarget as HTMLElement).style.background = 'var(--nwd-surface)'
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        ;(e.currentTarget as HTMLElement).style.background = isExpanded
+                                                            ? 'color-mix(in srgb, var(--nwd-teal) 5%, white)'
+                                                            : ''
+                                                    }}
+                                                >
+                                                    <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                                        <div className="flex items-center gap-2">
+                                                            <svg
+                                                                className="w-3 h-3 flex-shrink-0 transition-transform"
+                                                                style={{
+                                                                    color: isExpanded ? 'var(--nwd-teal)' : '#d1d5db',
+                                                                    transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                                                }}
+                                                                fill="none" viewBox="0 0 8 12" stroke="currentColor" strokeWidth="2"
+                                                            >
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M2 2l4 4-4 4" />
+                                                            </svg>
+                                                            {proposal.title}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+                                                        <div>{proposal.client_name ?? 'Unknown'}</div>
+                                                        <div className="text-xs text-gray-400" style={{ fontFamily: 'var(--font-geist-mono)' }}>
+                                                            {proposal.client_email}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                                                        {proposal.budget ? `$${proposal.budget}` : '—'}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <ProposalStatusBadge status={proposal.status} />
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                                            <button
+                                                                type="button"
+                                                                disabled={!isReviewable || anyProcessing}
+                                                                onClick={() => handleApprove(proposal.id)}
+                                                                className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all hover:brightness-90 active:brightness-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100"
+                                                                style={{
+                                                                    borderColor: 'var(--nwd-teal)',
+                                                                    color: isProcessing ? '#6b7280' : 'var(--nwd-teal)',
+                                                                    background: isProcessing
+                                                                        ? 'color-mix(in srgb, #6b7280 8%, white)'
+                                                                        : 'color-mix(in srgb, var(--nwd-teal) 8%, white)',
+                                                                }}
+                                                            >
+                                                                {isProcessing ? 'Processing…' : 'Approve'}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                disabled={!isReviewable || anyProcessing}
+                                                                onClick={() => handleReject(proposal.id)}
+                                                                className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all hover:brightness-90 active:brightness-75 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100"
+                                                                style={{
+                                                                    borderColor: '#f43f5e',
+                                                                    color: isProcessing ? '#6b7280' : '#f43f5e',
+                                                                    background: isProcessing
+                                                                        ? 'color-mix(in srgb, #6b7280 8%, white)'
+                                                                        : 'color-mix(in srgb, #f43f5e 8%, white)',
+                                                                }}
+                                                            >
+                                                                {isProcessing ? 'Processing…' : 'Reject'}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
+                                                {isExpanded && (
+                                                    <tr style={{ background: 'color-mix(in srgb, var(--nwd-teal) 5%, white)', borderTop: 'none' }}>
+                                                        <td
+                                                            colSpan={5}
+                                                            className="px-6 py-4"
+                                                            style={{ borderTop: '1px dashed color-mix(in srgb, var(--nwd-teal) 30%, transparent)' }}
+                                                        >
+                                                            <p className="text-xs font-semibold tracking-widest mb-2" style={{ color: 'var(--nwd-teal)', fontFamily: 'var(--font-geist-mono)' }}>
+                                                                DESCRIPTION
+                                                            </p>
+                                                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                                                {proposal.description?.trim() || (
+                                                                    <span className="text-gray-400 italic">No description provided.</span>
+                                                                )}
+                                                            </p>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        )
+                                    })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </section>
+
                 </div>
-            </div>
+            </main>
+
+            <footer className="text-center py-6 px-4">
+                <p className="text-xs tracking-wide" style={{ color: 'var(--nwd-purple)', opacity: 0.4, fontFamily: 'var(--font-geist-mono)' }}>
+                    NWD CENTRAL HUB
+                </p>
+            </footer>
+
         </div>
     )
 }
