@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackButton from '@/components/BackButton';
-import { PROPOSAL_STATUSES, type Proposal } from '@/lib/proposals';
 
 export default function NewProposal() {
   const router = useRouter();
@@ -15,12 +14,12 @@ export default function NewProposal() {
 
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
-    const newProposal: Proposal = {
+    const newProposal = {
       id: crypto.randomUUID(),
       title: formData.get('title') as string,
       description: formData.get('description') as string,
       budget: formData.get('budget') as string,
-      status: PROPOSAL_STATUSES.Submitted,
+      status: 'pending',
       createdAt: new Date().toISOString(),
     };
 
