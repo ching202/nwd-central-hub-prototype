@@ -3,14 +3,14 @@ import Image from 'next/image'
 
 const navItems = [
   {
-    href: '/login/proposals/new',
+    href: '/login/client/proposals/new',
     label: 'Create Proposal',
     description: 'Submit a new client proposal',
     accent: 'var(--nwd-purple)',
     tag: 'PROPOSALS',
   },
   {
-    href: '/login/proposals',
+    href: '/login/client/proposals',
     label: 'Contractor View',
     description: 'Browse submitted proposals',
     accent: 'var(--nwd-purple)',
